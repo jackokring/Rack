@@ -49,9 +49,9 @@ struct Generic : Module {
 
 	float lights;
 
-	Generic(KRTWidget x);
+	Generic(KRTWidget _x);
 	void step();
-	KRTWidget k;
+	KRTWidget _k;
 };
 
 ////////////////////

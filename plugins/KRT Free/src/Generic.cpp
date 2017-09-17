@@ -1,16 +1,30 @@
 #include "KRTFree.hpp"
 
-#define KRTRES(X) void (*(X::fn()))(Generic) { return X::stepI; } char* X::slug() { return #X; }
 #define IMAGE(X) "plugins/KRTFree/res/" #X ".png"
-#define KRTRUN(X,Y) (*(X()))(Y)
+#define KRTRES(X) void (*(X::fn()))(Generic) { return X::stepI; } char* X::slug() { return IMAGE(X); }
+#define KRTRUN(X) (*(_k.fn()))(X)
 #define IS(X) (module.fn == X::fn)
 #define OUTPUT(X,Y,Z) addOutput(createOutput<PJ3410Port>(Vec(X, Y), module, Generic::Z))
 #define INPUT(X,Y,Z) addInput(createInput<PJ3410Port>(Vec(X, Y), module, Generic::Z))
 #define LED(X,Y,Z) addChild(createValueLight<MediumLight<GreenRedPolarityLight>>(Vec(X, Y), &module->Z))
 #define SCREW(X,Y) addChild(createScrew<ScrewBlack>(Vec(X, Y)))
 #define CTRL(X,Y,Z) addParam(createParam<Davies1900hWhiteKnob>(Vec(X, Y), module, Generic::Z, 0.0, 1.0, 0.0))
-#define PANEL(X) box.size = Vec(15*X, 380); { Panel *panel = new DarkPanel(); panel->box.size = box.size;\
-	panel->backgroundImage = Image::load(IMAGE(k.slug())); addChild(panel); }
+#define PANEL(X) setModule(new Generic(this)); box.size = Vec(15*X, 380); {\
+	Panel *panel = new DarkPanel(); panel->box.size = box.size;\
+	panel->backgroundImage = Image::load(k.slug()); addChild(panel); }
+#define LIBINIT void KRTInit() {
+#define GENERIC } Generic::Generic(KRTWidget _x) { _k = _x; params.resize(NUM_PARAMS); inputs.resize(NUM_INPUTS);\
+	 outputs.resize(NUM_OUTPUTS);
+#define STEP } void Generic::step() {
+#define SHOW } KRTWidget::KRTWidget() {
+#define END }
+
+//NEW MODULES NEED:
+//a KRTWID in KRTFree.hpp - builds widget super structure
+//a KRTMOD in KRTFree.cpp - links to the loader
+//a BEGIN END in DSP.cpp - defines the DSP algorithm
+//a KRTRES here - wires the generic logic
+//modifying SHOW here to adapt their layout
 
 //EI 4 by 4
 KRTRES(PMKRTWidget);
@@ -24,20 +38,13 @@ KRTRES(LFOKRTWidget);
 KRTRES(CHDKRTWidget);
 KRTRES(PHYKRTWidget);
 
-Generic::Generic(KRTWidget x) {
-	k = x;
+LIBINIT
+	//gloal plugin initializer
+GENERIC
 	lights = 0.0;
-	params.resize(NUM_PARAMS);
-	inputs.resize(NUM_INPUTS);
-	outputs.resize(NUM_OUTPUTS);
-}
-
-void Generic::step() {
-	KRTRUN(k.fn, this);//Can also apply it to other instances to share IO
-}
-
-KRTWidget::KRTWidget() {
-	setModule(new Generic(this));
+STEP
+	KRTRUN(this);//Can also apply it to other instances to share IO
+SHOW
 	PANEL(5);
 
 	SCREW(15, 0);
@@ -64,4 +71,4 @@ KRTWidget::KRTWidget() {
 	OUTPUT(40, 278, OUT4_OUTPUT);
 
 	LED(31, 309, lights);
-}
+END
