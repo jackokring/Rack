@@ -1,24 +1,20 @@
 #include "KRTFree.hpp"
-#include "KRTFreeStep.cpp"
 
-#define KRTRES(X,Y) void (*(X::fn()))() { return Y; } char* X::slug() { return ""X""; }
-#define IMAGE(X) "plugins/KRTFree/res/"X".png"
-
-void nop() {
-	return;
-}
+#define KRTRES(X) void (*(X::fn()))(Generic) { return X::step; } char* X::slug() { return #X; }
+#define IMAGE(X) "plugins/KRTFree/res/" #X ".png"
+#define KRTRUN(X,Y) (*(X()))(Y)
 
 //EI 4 by 4
-KRTRES(PMKRTWidget, nop);
-KRTRES(PLLKRTWidge, nop);
-KRTRES(VCFKRTWidge, nop);
-KRTRES(DSTKRTWidge, nop);
+KRTRES(PMKRTWidget);
+KRTRES(PLLKRTWidge);
+KRTRES(VCFKRTWidge);
+KRTRES(DSTKRTWidge);
 
 //EI 1 in 3
-KRTRES(VCOKRTWidget, nop);
-KRTRES(LFOKRTWidget, nop);
-KRTRES(CHDKRTWidget, nop);
-KRTRES(PHYKRTWidget, nop);
+KRTRES(VCOKRTWidget);
+KRTRES(LFOKRTWidget);
+KRTRES(CHDKRTWidget);
+KRTRES(PHYKRTWidget);
 
 Generic::Generic(KRTWidget x) {
 	k = x;
@@ -29,7 +25,7 @@ Generic::Generic(KRTWidget x) {
 }
 
 void Generic::step() {
-	KRTPTR(k.fn);
+	KRTPTR(k.fn, this);
 }
 
 KRTWidget::KRTWidget() {

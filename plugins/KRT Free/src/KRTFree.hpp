@@ -1,12 +1,15 @@
 #include "rack.hpp"
-#define KRTPTR(X) void (*(X()))()
+#define KRTPTR(X) void (*(X()))(struct Generic)
 #define KRTCHR(X) char* X()
+#define KRTWID(X) struct X : KRTWidget { using KRTWidget::KRTWidget; void step(Generic); }
 
 using namespace rack;
 
 void KRTInit();
 
 //INDIRECT
+struct Generic;
+
 struct KRTWidget : ModuleWidget {
     KRTWidget();
     virtual KRTPTR(fn);//do it
@@ -47,35 +50,13 @@ struct Generic : Module {
 ////////////////////
 
 //EI 4 by 4
-struct PMKRTWidget : KRTWidget {
-    using KRTWidget::KRTWidget;
-};
-
-struct PLLKRTWidget : KRTWidget {
-	using KRTWidget::KRTWidget;
-};
-
-struct VCFKRTWidget : KRTWidget {
-	using KRTWidget::KRTWidget;
-};
-
-struct DSTKRTWidget : KRTWidget {
-    using KRTWidget::KRTWidget;
-};
+KRTWID(PMKRTWidget);
+KRTWID(PLLKRTWidget)
+KRTWID(VCFKRTWidget);
+KRTWID(DSTKRTWidget);
 
 //EI 1 in 3
-struct VCOKRTWidget : KRTWidget {
-	using KRTWidget::KRTWidget;
-};
-
-struct LFOKRTWidget : KRTWidget {
-	using KRTWidget::KRTWidget;
-};
-
-struct CHDKRTWidget : KRTWidget {
-	using KRTWidget::KRTWidget;
-};
-
-struct PHYKRTWidget : KRTWidget {
-	using KRTWidget::KRTWidget;
-};
+KRTWID(VCOKRTWidget);
+KRTWID(LFOKRTWidget);
+KRTWID(CHDKRTWidget);
+KRTWID(PHYKRTWidget);

@@ -1,5 +1,5 @@
 #include "KRTFree.hpp"
-#define KRTMOD(X,Y) createModel<X>(this, ""X"", Y) 
+#define KRTMOD(X,Y) createModel<X>(this, #X, Y) 
 
 struct KRTFreePlugin : Plugin {
 	KRTFreePlugin() {
