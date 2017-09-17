@@ -1,8 +1,16 @@
 #include "KRTFree.hpp"
 
-#define KRTRES(X) void (*(X::fn()))(Generic) { return X::step; } char* X::slug() { return #X; }
+#define KRTRES(X) void (*(X::fn()))(Generic) { return X::stepI; } char* X::slug() { return #X; }
 #define IMAGE(X) "plugins/KRTFree/res/" #X ".png"
 #define KRTRUN(X,Y) (*(X()))(Y)
+#define IS(X) (module.fn == X::fn)
+#define OUTPUT(X,Y,Z) addOutput(createOutput<PJ3410Port>(Vec(X, Y), module, Generic::Z))
+#define INPUT(X,Y,Z) addInput(createInput<PJ3410Port>(Vec(X, Y), module, Generic::Z))
+#define LED(X,Y,Z) addChild(createValueLight<MediumLight<GreenRedPolarityLight>>(Vec(X, Y), &module->Z))
+#define SCREW(X,Y) addChild(createScrew<ScrewBlack>(Vec(X, Y)))
+#define CTRL(X,Y,Z) addParam(createParam<Davies1900hWhiteKnob>(Vec(X, Y), module, Generic::Z, 0.0, 1.0, 0.0))
+#define PANEL(X) box.size = Vec(15*X, 380); { Panel *panel = new DarkPanel(); panel->box.size = box.size;\
+	panel->backgroundImage = Image::load(IMAGE(k.slug())); addChild(panel); }
 
 //EI 4 by 4
 KRTRES(PMKRTWidget);
@@ -25,43 +33,35 @@ Generic::Generic(KRTWidget x) {
 }
 
 void Generic::step() {
-	KRTPTR(k.fn, this);
+	KRTRUN(k.fn, this);//Can also apply it to other instances to share IO
 }
 
 KRTWidget::KRTWidget() {
-	Generic *module = new Generic(this);
-	setModule(module);
-	box.size = Vec(15*5, 380);
+	setModule(new Generic(this));
+	PANEL(5);
 
-	{
-		Panel *panel = new DarkPanel();
-		panel->box.size = box.size;
-		panel->backgroundImage = Image::load(IMAGE(k.slug()));//KRTTag[]
-		addChild(panel);
-	}
+	SCREW(15, 0);
+	SCREW(15, 365);
 
-	addChild(createScrew<ScrewBlack>(Vec(15, 0)));
-	addChild(createScrew<ScrewBlack>(Vec(15, 365)));
+	CTRL(19, 32, CH1_PARAM);
+	CTRL(19, 85, CH2_PARAM);
+	CTRL(19, 137, CH3_PARAM);
+	CTRL(19, 190, CH4_PARAM);
 
-	addParam(createParam<Davies1900hWhiteKnob>(Vec(19, 32), module, Generic::CH1_PARAM, 0.0, 1.0, 0.0));
-	addParam(createParam<Davies1900hWhiteKnob>(Vec(19, 85), module, Generic::CH2_PARAM, 0.0, 1.0, 0.0));
-	addParam(createParam<Davies1900hWhiteKnob>(Vec(19, 137), module, Generic::CH3_PARAM, 0.0, 1.0, 0.0));
-	addParam(createParam<Davies1900hWhiteKnob>(Vec(19, 190), module, Generic::CH4_PARAM, 0.0, 1.0, 0.0));
-
-	if(module.fn == PHYKRTWidget::fn)
-		addOutput(createOutput<PJ3410Port>(Vec(4, 239), module, Generic::OUT1_OUTPUT));
+	if(IS(PHYKRTWidget))
+		OUTPUT(4, 239, OUT1_OUTPUT);
 	else
-		addInput(createInput<PJ3410Port>(Vec(4, 239), module, Generic::IN1_INPUT));
+		INPUT(4, 239, IN1_INPUT);
 
-	if(module.fn == VCOKRTWidget::fn || module.fn == LFOKRTWidget::fn || module.fn == CHDKRTWidget::fn) {
-		addOutput(createOutput<PJ3410Port>(Vec(40, 239), module, Generic::OUT2_OUTPUT));
-		addOutput(createOutput<PJ3410Port>(Vec(4, 278), module, Generic::OUT3_OUTPUT));
+	if(IS(VCOKRTWidget) || IS(LFOKRTWidget) || IS(CHDKRTWidget)) {
+		OUTPUT(40, 239, OUT2_OUTPUT);
+		OUTPUT(4, 278, OUT3_OUTPUT);
 	} else {
-		addInput(createInput<PJ3410Port>(Vec(40, 239), module, Generic::IN2_INPUT));
-		addInput(createInput<PJ3410Port>(Vec(4, 278), module, Generic::IN3_INPUT));
+		INPUT(40, 239, IN2_INPUT);
+		INPUT(4, 278, IN3_INPUT);
 	}
 
-	addOutput(createOutput<PJ3410Port>(Vec(40, 278), module, Generic::OUT4_OUTPUT));
+	OUTPUT(40, 278, OUT4_OUTPUT);
 
-	addChild(createValueLight<MediumLight<GreenRedPolarityLight>>(Vec(31, 309), &module->lights));
+	LED(31, 309, lights);
 }

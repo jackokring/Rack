@@ -1,7 +1,7 @@
 #include "rack.hpp"
 #define KRTPTR(X) void (*(X()))(struct Generic)
 #define KRTCHR(X) char* X()
-#define KRTWID(X) struct X : KRTWidget { using KRTWidget::KRTWidget; void step(Generic); }
+#define KRTWID(X) struct X : KRTWidget { using KRTWidget::KRTWidget; void stepI(Generic); }
 
 using namespace rack;
 
@@ -13,7 +13,16 @@ struct Generic;
 struct KRTWidget : ModuleWidget {
     KRTWidget();
     virtual KRTPTR(fn);//do it
-    virtual KRTCHR(slug);
+	virtual KRTCHR(slug);
+	//void stepI(Generic);//is not virtual, prevent exo-injection
+	//can call via fn another action on this,
+	//can't upset any contract expectations.
+	//as it has to allow all other instance variables.
+	//virtual could do this, but no need for a second
+	//indirection pointer.
+	//all to allow a if(this != _g) signaling context.
+	//also allows BEGIN() extenders for intercepts.
+	//with KRTWID() extenders of course.
 }
 
 struct Generic : Module {

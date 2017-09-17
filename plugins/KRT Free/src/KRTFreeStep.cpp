@@ -1,8 +1,8 @@
 #include "KRTFree.hpp"
-#define BEGIN(X) void X::step(Generic _g) {
+#define BEGIN(X) void X::stepI(Generic _g) {
 #define END ; return; }
 
-#define FRONT(X) (_g.params[X])
+#define PARA(X) (_g.params[X])
 #define IN(X) getf(_g.inputs[X])
 #define OUT(X,Y) setf(_g.outputs[X], Y)
 #define LIGHT(X) (_g.lights = X)
