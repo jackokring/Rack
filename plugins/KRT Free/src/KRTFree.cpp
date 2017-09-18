@@ -12,8 +12,8 @@
 
 struct KRTFreePlugin : Plugin {
 	KRTFreePlugin() {
-		slug = "KRTFree";
-		name = "KRT EI";
+		slug = SLUGGENERIC;
+		name = PLUGNAME;
 #include "DSP.hpp"
 	}
 };

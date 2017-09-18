@@ -1,4 +1,6 @@
 #include "rack.hpp"
+//include lib headers
+#include "libs.hpp"
 #define KRTPTR(X) void (*(X()))(struct Generic)
 #define KRTCHR(X) char* X()
 #define KRTWID(X) struct X : KRTWidget { using KRTWidget::KRTWidget; void stepI(Generic); }

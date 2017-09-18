@@ -1,11 +1,11 @@
 
-SOURCES = $(wildcard src/*.cpp) kissfft/kiss_fft.c
+SOURCES = $(wildcard src/*.cpp) 
 
 include ../../plugin.mk
 
 
 dist:
-	mkdir -p dist/Fundamental
-	cp LICENSE* dist/Fundamental/
-	cp plugin.* dist/Fundamental/
-	cp -R res dist/Fundamental/
+	mkdir -p dist/KRTFree
+	cp LICENSE* dist/KRTFree/
+	cp plugin.* dist/KRTFree/
+	cp -R res dist/KRTFree/
