@@ -12,6 +12,7 @@
 #define LIBEND }
 
 #define COMPILING 1
+
 #define BEGIN(X,Y) KRTRES(X); / ## *
 #define END * ## /
 
@@ -23,4 +24,15 @@
 
 //NEW MODULES NEED:
 //CODE IN DSP.hpp
+#include "DSP.hpp"
+
+#define BEGIN(X,Y) void X::stepI(Generic _g) {
+#define END }
+#define TYPE 
+#define DEF Generic::
+#define SUB {
+#define RETURN }
+#define VAR ;
+#define LIBINIT / ## *
+#define LIBEND * ## /
 #include "DSP.hpp"

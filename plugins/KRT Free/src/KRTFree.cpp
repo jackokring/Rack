@@ -23,14 +23,6 @@ struct KRTFreePlugin : Plugin {
 	}
 };
 
-#define BEGIN(X,Y) void X::stepI(Generic _g) {
-#define END }
-#define TYPE 
-#define DEF Generic::
-#define SUB {
-#define RETURN }
-#include "DSP.hpp"
-
 Plugin *init() {
 	KRTInit();
 	return new KRTFreePlugin();

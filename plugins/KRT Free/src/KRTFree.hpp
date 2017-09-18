@@ -64,7 +64,7 @@ struct Generic : Module {
 #define RETURN
 #define VAR ;
 //The overrides
-#define BEGIN(X,Y) void X::stepI(Generic _g); / ## *
+#define BEGIN(X,Y) / ## *
 #define END * ## /
 #define LIBINIT / ## *
 #define LIBEND * ## /
