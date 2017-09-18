@@ -15,6 +15,12 @@
 #define BEGIN(X,Y) KRTRES(X); / ## *
 #define END * ## /
 
+#define TYPE / ## *
+#define DEF
+#define SUB
+#define RETURN * ## /
+#define VAR * ## /
+
 //NEW MODULES NEED:
 //CODE IN DSP.hpp
 #include "DSP.hpp"

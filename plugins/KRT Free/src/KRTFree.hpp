@@ -58,7 +58,11 @@ struct Generic : Module {
 	KRTWidget _k;
 //The function template extension
 //TODO:
-
+#define TYPE
+#define DEF
+#define SUB ;
+#define RETURN
+#define VAR ;
 //The overrides
 #define BEGIN(X,Y) void X::stepI(Generic _g); / ## *
 #define END * ## /
@@ -73,5 +77,10 @@ struct Generic : Module {
 
 //The overrides
 #define BEGIN(X,Y) KRTWID(X); / ## *
+#define TYPE / ## *
+#define DEF 
+#define SUB
+#define RETURN * ## /
+#define VAR * ## /
 #include "DSP.hpp"
 

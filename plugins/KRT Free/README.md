@@ -16,3 +16,19 @@ There are 4 developing modules.
   * CHD - A 3 note chord quantizer. With drift tuning.
   * PHY - A complex physical modelled 4 output wave source.
 
+# Source DSL (All-in-one DSP.hpp edits)
+
+The source has a domain specific language to compile modules. Current syntax includes
+
+  * BEGIN(classname, "readable name") ... cpp inards of step ... END
+  * IN, OUT, PARA, LIGHT for all those easy controls used in DSP
+  * LIBINIT ... global ... GENERIC ... local ... STEP ... tick ... SHOW(size) ... gui ... LIBEND
+  * INPUT, OUTPUT, CTRL, LED to place things on the show
+  * IS(classname) used in gui for specific design
+  * libs.hpp place to put all your library includes
+  * a standardized co-ordinate system based on size 5 multiples, 4 centred knobs, 6 sockets in 2 columns and 2 leds per size 5
+  * a .svg standard path in /res based on classname
+  * TYPE ... type expression ... DEF ... func name and args ... SUB ... code ... RETURN for generic functions
+  * TYPE ... type expression ... DEF ... var name (and array) ... VAR for generic variables
+
+  

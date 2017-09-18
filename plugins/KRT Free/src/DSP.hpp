@@ -40,6 +40,15 @@
 	Panel *panel = new DarkPanel(); panel->box.size = box.size;\
 	panel->backgroundImage = Image::load(k.slug()); addChild(panel); }
 //===================================================================================================
+//========================================================================================= FUNCTIONS
+
+TYPE int DEF x[100] VAR //Use GENERIC to initialize
+
+TYPE void DEF func(int arg) SUB
+
+RETURN
+
+//===================================================================================================
 //=============================================================================================== DSP
 //EI 4 by 4
 BEGIN(PMKRTWidget, "PM Phase Modulator")
