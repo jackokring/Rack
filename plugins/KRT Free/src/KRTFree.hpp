@@ -23,16 +23,18 @@ struct KRTWidget : ModuleWidget {
 
 struct Generic : Module {
 	enum ParamIds {
-		CH1_PARAM,
-		CH2_PARAM,
-		CH3_PARAM,
-		CH4_PARAM,
+		POT1_PARAM,
+		POT2_PARAM,
+		POT3_PARAM,
+		POT4_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
 		IN1_INPUT,
 		IN2_INPUT,
 		IN3_INPUT,//MAX 3 AS WOULD BE NO OUT
+		VCA_INPUT,
+		CUBE_INPUT,
 		NUM_INPUTS
 	};
 	enum OutputIds {
@@ -43,7 +45,7 @@ struct Generic : Module {
 		NUM_OUTPUTS
 	};
 
-	float lights;
+	float light;
 
 	Generic(KRTWidget _x);
 	void step();

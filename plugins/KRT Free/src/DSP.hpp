@@ -17,23 +17,23 @@
 #define OUT(X,Y) setf(outputs[X], Y)
 #define CHAINEDIN(X) getf(_g.inputs[X])
 #define CHAINEDOUTIN(X) getf(_g.outputs[X]) /* maybe a sample behind */
-#define CHAINEDOUT(X,Y,OLD) setf(_g.outputs[X], getf(_g.outputs[X]) - OLD + Y)
-#define MERGEDOUT(X,Y,OLD) setf(outputs[X], getf(outputs[X]) - OLD + Y)
+#define CHAINEDOUT(X,Y,OLD) setf(_g.outputs[X], getf(_g.outputs[X]) - OLD + Y); OLD = Y
+#define MERGEDOUT(X,Y,OLD) setf(outputs[X], getf(outputs[X]) - OLD + Y); OLD = Y
 #define LIGHT(X) lights = X
 //IS only works in SHOW section
 #define IS(X) (module.fn == X::fn)
 //Graphics scaling
-#define _CX(X) 20 + 75 * X
-#define _CY(Y) 32 + 51 * Y
-#define _SX(X) 4 + 75 * X / 2
-#define _SY(Y) 240 + 40 * Y
+#define _CX(X) 19 + 75 * X
+#define _CY(Y) 30 + 51 * Y
+#define _SX(X) 4 + 38 * X
+#define _SY(Y) 240 + 38 * Y
 #define _SC(Y) 15 + 75 * Y
-#define _LY(Y) 309 + 20 * Y
+#define _LY(Y) 272 + 38 * Y
 //Easy port definition
 #define OUTPUT(X,Y,Z) addOutput(createOutput<PJ3410Port>(Vec(_SX(X), _SY(Y)), module, Generic::Z))
 #define INPUT(X,Y,Z) addInput(createInput<PJ3410Port>(Vec(_SX(X), _SY(Y)), module, Generic::Z))
 //LEDs
-#define LED(Y,Z) addChild(createValueLight<MediumLight<GreenRedPolarityLight>>(Vec(31, _LY(Y)), &module->Z))
+#define LED(Y,Z) addChild(createValueLight<TinyLight<GreenRedPolarityLight>>(Vec(30, _LY(Y)), &module->Z))
 //Screws
 #define _SCREW(X,Y) addChild(createScrew<ScrewBlack>(Vec(_SC(X), Y)))
 #define SCREWS(X) _SCREW(X, 0);_SCREW(X, 365)
@@ -99,7 +99,7 @@ END
 LIBINIT
 	//gloal plugin initializer
 GENERIC
-	lights = 0.0;
+	light = 0.0;
 STEP
 	KRTRUN(this);//Can also apply it to other instances to share IO
 SHOW(5)
@@ -126,6 +126,11 @@ SHOW(5)
 
 	OUTPUT(1, 1, OUT4_OUTPUT);
 
-	LED(0, lights);
+	//A BUILT IN VCA OPTION?
+	INPUT(0, 2, VCA_INPUT);
+	//A SECOND VCA TO ASSIST IN ADDATIVE HARMONICS
+	INPUT(1, 2, CUBE_INPUT);
+
+	LED(0, light);
 LIBEND
 //===================================================================================================
