@@ -41,11 +41,16 @@
 	panel->backgroundImage = Image::load(k.slug()); addChild(panel); }
 //===================================================================================================
 //========================================================================================= FUNCTIONS
+//NOTES ON GETTING OTHER VARIABLES INTO JUST A SPECIFIC CLASS
+//A static type VAR will persist across the whole plugin.
+//A static declaration in a function will persist across any instances using that function.
+//A static declaration in a BEGIN ... END section will persist across all instances of the one module kind.
+//
 
 TYPE int DEF x[100] VAR //Use GENERIC to initialize
 
 TYPE void DEF func(int arg) SUB
-
+	//C++ function here minus the {} outer brackets
 RETURN
 
 //===================================================================================================
