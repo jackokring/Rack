@@ -3,6 +3,8 @@
 #define KRTCHR(X) char* X()
 #define KRTWID(X) struct X : KRTWidget { using KRTWidget::KRTWidget; void stepI(Generic); }
 
+#define COMPILING 1
+
 using namespace rack;
 
 void KRTInit();
@@ -52,20 +54,22 @@ struct Generic : Module {
 	Generic(KRTWidget _x);
 	void step();
 	KRTWidget _k;
+//The function template extension
+//TODO:
+
+//The overrides
+#define BEGIN(X,Y) void X::stepI(Generic _g); / ## *
+#define END * ## /
+#define LIBINIT / ## *
+#define LIBEND * ## /
+#include "DSP.hpp"
 };
 
 ////////////////////
 // module widgets
 ////////////////////
 
-//EI 4 by 4
-KRTWID(PMKRTWidget);
-KRTWID(PLLKRTWidget)
-KRTWID(VCFKRTWidget);
-KRTWID(DSTKRTWidget);
+//The overrides
+#define BEGIN(X,Y) KRTWID(X); / ## *
+#include "DSP.hpp"
 
-//EI 1 in 3
-KRTWID(VCOKRTWidget);
-KRTWID(LFOKRTWidget);
-KRTWID(CHDKRTWidget);
-KRTWID(PHYKRTWidget);

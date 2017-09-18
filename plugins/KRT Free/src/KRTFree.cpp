@@ -1,22 +1,26 @@
 #include "KRTFree.hpp"
 #define KRTMOD(X,Y) createModel<X>(this, #X, Y) 
 
+#define COMPILING 1
+
+//The overrides
+#define BEGIN(X,Y) KRTMOD(X,Y); / ## *
+#define END * ## /
+#define LIBINIT / ## *
+#define LIBEND * ## /
+
+
 struct KRTFreePlugin : Plugin {
 	KRTFreePlugin() {
 		slug = "KRTFree";
 		name = "KRT EI";
-		KRTMOD(PMKRTWidget, "PM Phase Modulator");
-		KRTMOD(PLLKRTWidget, "PLL Phase Locked Loop");
-		KRTMOD(VCFKRTWidget, "VCF SK Filter");
-		KRTMOD(DSTKRTWidget, "DST Distortion");
-		//
-		KRTMOD(VCOKRTWidget, "VCO 2 Subs");
-		KRTMOD(LFOKRTWidget, "LFO Gate Synced");
-		KRTMOD(CHDKRTWidget, "CHD Chord Quantizer");
-		KRTMOD(PHYKRTWidget, "PHY Physical Model");
+#include "DSP.hpp"
 	}
 };
 
+#define BEGIN(X,Y) void X::stepI(Generic _g) {
+#define END }
+#include "DSP.hpp"
 
 Plugin *init() {
 	KRTInit();

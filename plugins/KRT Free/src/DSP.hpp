@@ -1,7 +1,9 @@
+//FOR THE EDITOR
+#ifndef COMPILING
 #include "KRTFree.hpp"
-#define BEGIN(X) void X::stepI(Generic _g) {
-#define END }
+#endif
 
+//BASIC MACROS FOR EASY CODE
 #define PARA(X) (_g.params[X])
 #define IN(X) getf(_g.inputs[X])
 #define OUT(X,Y) setf(_g.outputs[X], Y)
@@ -72,4 +74,4 @@ SHOW(5);
 	OUTPUT(1, 1, OUT4_OUTPUT);
 
 	LED(0, lights);
-END
+LIBEND
