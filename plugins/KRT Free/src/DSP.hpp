@@ -12,10 +12,14 @@
 //=========================================================================================
 //============================================================================= DO NOT EDIT
 //BASIC MACROS FOR EASY CODE
-#define PARA(X) (_g.params[X])
-#define IN(X) getf(_g.inputs[X])
-#define OUT(X,Y) setf(_g.outputs[X], Y)
-#define LIGHT(X) (_g.lights = X)
+#define PARA(X) params[X]
+#define IN(X) getf(inputs[X])
+#define OUT(X,Y) setf(outputs[X], Y)
+#define CHAINEDIN(X) getf(_g.inputs[X])
+#define CHAINEDOUTIN(X) getf(_g.outputs[X]) /* maybe a sample behind */
+#define CHAINEDOUT(X,Y,OLD) setf(_g.outputs[X], getf(_g.outputs[X]) - OLD + Y)
+#define MERGEDOUT(X,Y,OLD) setf(outputs[X], getf(outputs[X]) - OLD + Y)
+#define LIGHT(X) lights = X
 //IS only works in SHOW section
 #define IS(X) (module.fn == X::fn)
 //Graphics scaling

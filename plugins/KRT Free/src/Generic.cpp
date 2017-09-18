@@ -1,8 +1,8 @@
 #include "KRTFree.hpp"
 
 #define IMAGE(X) "plugins/" SLUGGENERIC "/res/" #X ".svg"
-#define KRTRES(X) void (*(X::fn()))(Generic) { return X::stepI; } char* X::slug() { return IMAGE(X); }
-#define KRTRUN(X) (*(_k.fn()))(X)
+#define KRTRES(X) void (Generic::*(X::fn()))(Generic) { return X::stepI; } char* X::slug() { return IMAGE(X); }
+#define KRTRUN(X) (this.*(_k.fn()))(X)
 
 #define LIBINIT void KRTInit() {
 #define GENERIC } Generic::Generic(KRTWidget _x) { _k = _x; params.resize(NUM_PARAMS); inputs.resize(NUM_INPUTS);\
