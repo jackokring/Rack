@@ -23,22 +23,23 @@
 //IS only works in SHOW section
 #define IS(X) (module.fn == X::fn)
 //Graphics scaling
-#define _CX(X) 19 + 75 * X
+#define _SD(Y) (Y % 2)
+#define _CX(X,Y) 4 + 60 * X + _SD(Y) * 16 
 #define _CY(Y) 30 + 51 * Y
-#define _SX(X) 4 + 38 * X
-#define _SY(Y) 240 + 38 * Y
-#define _SC(Y) 15 + 75 * Y
-#define _LY(Y) 272 + 38 * Y
+#define _SX(X,Y) 4 + 30 * X - _SD(Y) * 8 
+#define _SY(Y) 240 + 38 * Y + _SD(Y) * 19
+#define _SC(Y) 15 + 60 * Y
+#define _LX(X) 5 + 10 * X
 //Easy port definition
-#define OUTPUT(X,Y,Z) addOutput(createOutput<PJ3410Port>(Vec(_SX(X), _SY(Y)), module, Generic::Z))
-#define INPUT(X,Y,Z) addInput(createInput<PJ3410Port>(Vec(_SX(X), _SY(Y)), module, Generic::Z))
+#define OUTPUT(X,Y,Z) addOutput(createOutput<PJ3410Port>(Vec(_SX(X,Y), _SY(Y)), module, Generic::Z))
+#define INPUT(X,Y,Z) addInput(createInput<PJ3410Port>(Vec(_SX(X,Y), _SY(Y)), module, Generic::Z))
 //LEDs
-#define LED(Y,Z) addChild(createValueLight<TinyLight<GreenRedPolarityLight>>(Vec(30, _LY(Y)), &module->Z))
+#define LED(Y,Z) addChild(createValueLight<TinyLight<GreenRedPolarityLight>>(Vec(_LX(X), 20), &module->Z))
 //Screws
 #define _SCREW(X,Y) addChild(createScrew<ScrewBlack>(Vec(_SC(X), Y)))
 #define SCREWS(X) _SCREW(X, 0);_SCREW(X, 365)
 //Control knobs
-#define CTRL(X,Y,Z) addParam(createParam<Davies1900hWhiteKnob>(Vec(_CX(X), _CY(Y)), module, Generic::Z, 0.0, 1.0, 0.0))
+#define CTRL(X,Y,Z) addParam(createParam<Davies1900hWhiteKnob>(Vec(_CX(X, Y), _CY(Y)), module, Generic::Z, 0.0, 1.0, 0.0))
 //DON'T USE ANYTHING WITH A _ BEFORE IT. E.G. _PANEL IS USED BY THE SHOW MACRO
 #define _PANEL(X) setModule(new Generic(this)); box.size = Vec(15*X, 380); {\
 	Panel *panel = new DarkPanel(); panel->box.size = box.size;\
@@ -102,7 +103,7 @@ GENERIC
 	light = 0.0;
 STEP
 	KRTRUN(this);//Can also apply it to other instances to share IO
-SHOW(5)
+SHOW(4)
 
 	SCREWS(1);
 
@@ -129,7 +130,7 @@ SHOW(5)
 	//A BUILT IN VCA OPTION?
 	INPUT(0, 2, VCA_INPUT);
 	//A SECOND VCA TO ASSIST IN ADDATIVE HARMONICS
-	INPUT(1, 2, CUBE_INPUT);
+	//INPUT(1, 2, CUBE_INPUT);
 
 	LED(0, light);
 LIBEND
