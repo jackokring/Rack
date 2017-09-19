@@ -14,7 +14,8 @@
 //BASIC MACROS FOR EASY CODE
 #define PARA(X) params[X]
 #define IN(X) getf(inputs[X])
-#define OUT(X,Y) setf(outputs[X], Y)
+//Auto VCA linear
+#define OUT(X,Y) setf(outputs[X], Y * getf(inputs[VCA_INPUT], 10.0) * 0.1)
 #define CHAINEDIN(X) getf(_g.inputs[X])
 #define CHAINEDOUTIN(X) getf(_g.outputs[X]) /* maybe a sample behind */
 #define CHAINEDOUT(X,Y,OLD) setf(_g.outputs[X], getf(_g.outputs[X]) - OLD + Y); OLD = Y
@@ -107,10 +108,10 @@ SHOW(4)
 
 	SCREWS(1);
 
-	CTRL(0, 0, CH1_PARAM);
-	CTRL(0, 1, CH2_PARAM);
-	CTRL(0, 2, CH3_PARAM);
-	CTRL(0, 3, CH4_PARAM);
+	CTRL(0, 0, POT1_PARAM);
+	CTRL(0, 1, POT2_PARAM);
+	CTRL(0, 2, POT3_PARAM);
+	CTRL(0, 3, POT4_PARAM);
 
 	if(IS(PHYKRTWidget))
 		OUTPUT(0, 0, OUT1_OUTPUT);
