@@ -13,7 +13,7 @@
 //============================================================================= DO NOT EDIT
 //BASIC MACROS FOR EASY CODE
 #define PARA(X) params[X]
-#define IN(X) getf(inputs[X])
+#define IN(X,Y) getf(inputs[X],Y)
 //Auto VCA linear
 #define OUT(X,Y) setf(outputs[X], Y * getf(inputs[VCA_INPUT], 10.0) * 0.1)
 #define CHAINEDIN(X) getf(_g.inputs[X])
@@ -54,6 +54,7 @@
 //
 
 TYPE int DEF x[100] VAR //Use GENERIC to initialize
+TYPE float DEF v[4] VAR
 
 TYPE void DEF func(int arg) SUB
 	//C++ function here minus the {} outer brackets
@@ -92,7 +93,19 @@ BEGIN(CHDKRTWidget, "CHD Chord Quantizer")
 END
 
 BEGIN(PHYKRTWidget, "PHY Physical Model")
-
+	float d = v[0] * v[0];
+	//float a = d * v[3];
+	float b = -9 * v[0] * v[1] * v[2];
+	float c = 12 * v[1] * v[1] * v[1];
+	float e = (1 - d) * v[1] * d;
+	v[3] = - (b + c + e);
+	OUT(OUT1_OUTPUT, b);
+	OUT(OUT2_OUTPUT, c);
+	OUT(OUT3_OUTPUT, e);
+	OUT(OUT4_OUTPUT, v[3]);
+	v[2] += v[3] / d;
+	v[1] += v[2];
+	v[0] += v[1];
 END
 
 //========================================================================================================
@@ -102,6 +115,7 @@ LIBINIT
 	//gloal plugin initializer
 GENERIC
 	light = 0.0;
+	v[0] = v[1] = v[2] = v[3];
 STEP
 	KRTRUN(this);//Can also apply it to other instances to share IO
 SHOW(4)
