@@ -55,6 +55,8 @@
 
 TYPE int DEF x[100] VAR //Use GENERIC to initialize
 TYPE float DEF v[4] VAR
+TYPE float DEF vo[4] VAR
+
 
 TYPE void DEF func(int arg) SUB
 	//C++ function here minus the {} outer brackets
@@ -93,23 +95,27 @@ BEGIN(CHDKRTWidget, "CHD Chord Quantizer")
 END
 
 BEGIN(PHYKRTWidget, "PHY Physical Model")
-	float d = v[0] * v[0];
+	float d = v[0] * v[0] + 0.000000001;//checks no crash
 	//float a = d * v[3];
 	float b = -9 * v[0] * v[1] * v[2];
 	float c = 12 * v[1] * v[1] * v[1];
 	float e = PARA(POT1_PARAM);
 	e *= (1 - d) * v[1] * d * e;
+	vo[3] = v[3];
 	v[3] = - (b + c + e);
 	OUT(OUT1_OUTPUT, b);
 	OUT(OUT2_OUTPUT, c);
 	OUT(OUT3_OUTPUT, e);
 	OUT(OUT4_OUTPUT, v[3]);
+	v[3] /= d;//achieves uncertainty
 	b = PARA(POT2_PARAM);
 	c = PARA(POT3_PARAM);
 	e = PARA(POT4_PARAM);
-	v[2] += b * v[3] / d;
-	v[1] += c * v[2];
-	v[0] += e * v[1];
+	vo[2] = v[2];
+	v[2] = exp(-b) * (v[2] + (v[3] + vo[3]) * 0.5);//emmissive model
+	vo[1] = v[1];
+	v[1] = exp(-c) * (v[1] + (v[2] + vo[2]) * 0.5);
+	v[0] = exp(-e) * (v[0] + (v[1] + vo[1]) * 0.5);
 END
 
 //========================================================================================================
@@ -120,6 +126,7 @@ LIBINIT
 GENERIC
 	light = 0.0;
 	v[0] = v[1] = v[2] = v[3] = 0.0;
+	vo[0] = vo[1] = vo[2] = vo[3] = 0.000000001;//startup
 STEP
 	KRTRUN(this);//Can also apply it to other instances to share IO
 SHOW(4)
