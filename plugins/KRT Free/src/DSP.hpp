@@ -97,15 +97,19 @@ BEGIN(PHYKRTWidget, "PHY Physical Model")
 	//float a = d * v[3];
 	float b = -9 * v[0] * v[1] * v[2];
 	float c = 12 * v[1] * v[1] * v[1];
-	float e = (1 - d) * v[1] * d;
+	float e = PARA(POT1_PARAM);
+	e *= (1 - d) * v[1] * d * e;
 	v[3] = - (b + c + e);
 	OUT(OUT1_OUTPUT, b);
 	OUT(OUT2_OUTPUT, c);
 	OUT(OUT3_OUTPUT, e);
 	OUT(OUT4_OUTPUT, v[3]);
-	v[2] += v[3] / d;
-	v[1] += v[2];
-	v[0] += v[1];
+	b = PARA(POT2_PARAM);
+	c = PARA(POT3_PARAM);
+	e = PARA(POT4_PARAM);
+	v[2] += b * v[3] / d;
+	v[1] += c * v[2];
+	v[0] += e * v[1];
 END
 
 //========================================================================================================
@@ -115,7 +119,7 @@ LIBINIT
 	//gloal plugin initializer
 GENERIC
 	light = 0.0;
-	v[0] = v[1] = v[2] = v[3];
+	v[0] = v[1] = v[2] = v[3] = 0.0;
 STEP
 	KRTRUN(this);//Can also apply it to other instances to share IO
 SHOW(4)
