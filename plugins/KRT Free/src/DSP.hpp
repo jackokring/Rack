@@ -100,15 +100,17 @@ RETURN
 //=============================================================================================== DSP
 //EI 4 by 4
 BEGIN(PMKRTWidget, "PM Phase Modulator")
-	float a = Freq(440 * PARACV(POT1_PARAM, 4.0), );//lpf
+	float inv = 1.0 / gSampleRate;
+	float a = Freq(440 * PARACV(POT1_PARAM, 4.0), inv);//lpf
 	float b = PARA(POT2_PARAM);//depth
-	float c = Freq(440 * PARACV(POT3_PARAM, 4.0), );//hpf
+	float c = Freq(440 * PARACV(POT3_PARAM, 4.0), inv);//hpf
 	float d = PARA(POT4_PARAM);//fb
-	float t = IN(IN1_INPUT) + vo[2] * (2.0 * d - 1.0);
+	float t = IN(IN1_INPUT) + (2 * vo[2] - vo[3]) * (2.0 * d - 1.0);
 	t = SK(t, 0.0, a, &v[0], &v[1], &v[2], 0.0, 0.0);
 	t += IN(IN2_INPUT);
 	t = t < 0 ? sin(-t * b * 4.0) : sin(t * b * 4.0);//sub
 	t += IN(IN3_INPUT);
+	vo[3] = vo[2];
 	t -= SK(t, 0.0, c, &vo[0], &vo[1], &vo[2], 0.0, 0.0);
 	OUT(OUT4_OUTPUT, t);
 END
@@ -158,11 +160,12 @@ BEGIN(CHDKRTWidget, "CHD Chord Quantizer")
 END
 
 BEGIN(PHYKRTWidget, "PHY Physical Model")
+	float inv = 1.0 / gSampleRate;
 	float d = v[0] * v[0] + 0.000000001;//checks no crash
 	//float a = d * v[3];
 	float b = -9 * v[0] * v[1] * v[2];
 	float c = 12 * v[1] * v[1] * v[1];
-	float e = PARA(POT1_PARAM);
+	float e = PARACV(POT1_PARAM, 2.0);
 	e *= (1 - d) * v[1] * d * e;
 	vo[3] = v[3];
 	v[3] = - (b + c + e);
@@ -171,14 +174,14 @@ BEGIN(PHYKRTWidget, "PHY Physical Model")
 	OUT(OUT3_OUTPUT, e);
 	OUT(OUT4_OUTPUT, v[3]);
 	v[3] /= d;//achieves uncertainty
-	b = PARA(POT2_PARAM);
-	c = PARA(POT3_PARAM);
-	e = PARA(POT4_PARAM);
+	b = PARACV(POT2_PARAM, 3.0);//1 Hz centre
+	c = PARACV(POT3_PARAM, 3.0);
+	e = PARACV(POT4_PARAM, 3.0);
 	vo[2] = v[2];
-	v[2] = exp(-b) * (v[2] + (v[3] + vo[3]) * 0.5);//emmissive model
+	v[2] = (1.0 - exp(-b * inv)) * (v[2] + (v[3] + vo[3]) * 0.5);//emmissive model
 	vo[1] = v[1];
-	v[1] = exp(-c) * (v[1] + (v[2] + vo[2]) * 0.5);
-	v[0] = exp(-e) * (v[0] + (v[1] + vo[1]) * 0.5);
+	v[1] = (1.0 - exp(-c * inv)) * (v[1] + (v[2] + vo[2]) * 0.5);
+	v[0] = (1.0 - exp(-e * inv)) * (v[0] + (v[1] + vo[1]) * 0.5);
 END
 
 //========================================================================================================
