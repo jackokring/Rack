@@ -15,6 +15,7 @@
 #define PARA(X) params[X]
 #define PARACV(X,S) exp(log(2.0) * S * (2.0 * params[X] - 1.0))
 #define IN(X,Y) getf(inputs[X],Y)
+#define INCV(X) exp(log(2.0) * inputs[X])
 //Auto VCA linear
 #define OUT(X,Y) setf(outputs[X], Y * getf(inputs[VCA_INPUT], 10.0) * 0.1)
 #define OUTCV(X,Y,M) setf(outputs[X], Y + (M - 0.5) * getf(inputs[VCA_INPUT], 0.0) * 0.1)
@@ -146,7 +147,17 @@ BEGIN(VCOKRTWidget, "VCO 2 Subs")
 END
 
 BEGIN(LFOKRTWidget, "LFO Gate Synced")
-
+	float *ph = &v[3];//phase
+	float f = Math::pi * 55.0 * PARACV(POT1_PARAM, 4.0);
+	float tr = INCV(IN1_INPUT);
+	float in = SK(tr, 0.0, Freq(f * 0.5, 1.0 / gSampleRate), &v[0], &v[1], &v[2], 0.0, 0.0);
+	f *= in  / gSampleRate;//based on input sample
+	*ph += f;
+	if(absf(v[2] - tr) > 1.0 / 13.0) *ph = 0.0;//sync 
+	if(*ph > 2.0 * Math::pi) *ph -= 2.0 * Math::pi;//wrap
+	OUT(OUT2_OUTPUT, sin(*ph) * (2.0 * PARA(POT2_PARAM) - 1.0));
+	OUT(OUT3_OUTPUT, sin(*ph + 2.0 * Math::pi / 3.0) * (2.0 * PARA(POT3_PARAM) - 1.0));
+	OUT(OUT4_OUTPUT, sin(*ph - 2.0 * Math::pi / 3.0) * (2.0 * PARA(POT4_PARAM) - 1.0));
 END
 
 BEGIN(CHDKRTWidget, "CHD Chord Quantizer")
