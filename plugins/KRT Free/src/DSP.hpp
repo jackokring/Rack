@@ -13,6 +13,7 @@
 //============================================================================= DO NOT EDIT
 //BASIC MACROS FOR EASY CODE
 #define PARA(X) params[X]
+#define PARACV(X,S) exp(log(2.0) * S * (2.0 * params[X] - 1.0))
 #define IN(X,Y) getf(inputs[X],Y)
 //Auto VCA linear
 #define OUT(X,Y) setf(outputs[X], Y * getf(inputs[VCA_INPUT], 10.0) * 0.1)
@@ -99,16 +100,16 @@ RETURN
 //=============================================================================================== DSP
 //EI 4 by 4
 BEGIN(PMKRTWidget, "PM Phase Modulator")
-	float a = PARA(POT1_PARAM, 0.0);//lpf
-	float b = PARA(POT2_PARAM, 0.0);//depth
-	float c = PARA(POT3_PARAM, 0.0);//hpf
-	float d = PARA(POT4_PARAM, 0.0);//fb
-	float t = IN(IN1_INPUT);
-
+	float a = Freq(440 * PARACV(POT1_PARAM, 4.0), );//lpf
+	float b = PARA(POT2_PARAM);//depth
+	float c = Freq(440 * PARACV(POT3_PARAM, 4.0), );//hpf
+	float d = PARA(POT4_PARAM);//fb
+	float t = IN(IN1_INPUT) + vo[2] * (2.0 * d - 1.0);
+	t = SK(t, 0.0, a, &v[0], &v[1], &v[2], 0.0, 0.0);
 	t += IN(IN2_INPUT);
 	t = t < 0 ? sin(-t * b * 4.0) : sin(t * b * 4.0);//sub
 	t += IN(IN3_INPUT);
-
+	t -= SK(t, 0.0, c, &vo[0], &vo[1], &vo[2], 0.0, 0.0);
 	OUT(OUT4_OUTPUT, t);
 END
 
