@@ -99,7 +99,17 @@ RETURN
 //=============================================================================================== DSP
 //EI 4 by 4
 BEGIN(PMKRTWidget, "PM Phase Modulator")
+	float a = PARA(POT1_PARAM, 0.0);//lpf
+	float b = PARA(POT2_PARAM, 0.0);//depth
+	float c = PARA(POT3_PARAM, 0.0);//hpf
+	float d = PARA(POT4_PARAM, 0.0);//fb
+	float t = IN(IN1_INPUT);
 
+	t += IN(IN2_INPUT);
+	t = t < 0 ? sin(-t * b * 4.0) : sin(t * b * 4.0);//sub
+	t += IN(IN3_INPUT);
+
+	OUT(OUT4_OUTPUT, t);
 END
 
 BEGIN(PLLKRTWidget, "PLL Phase Locked Loop")
@@ -111,7 +121,20 @@ BEGIN(VCFKRTWidget, "VCF SK Filter")
 END
 
 BEGIN(DSTKRTWidget, "DST Distortion")
-
+	float a = IN(IN1_INPUT, 0.0);
+	float b = IN(IN2_INPUT, 0.0);
+	float c = IN(IN3_INPUT, 0.0);
+	a *= exp(-1.0) * PARA(POT1_PARAM);
+	b *= exp(1.0) * PARA(POT2_PARAM);
+	c *= PARA(POT3_PARAM);
+	//distort
+	//everyone doing tanh, a bit different but not too far off
+	b = b < 0 ? -exp(-a) - 1.0 : exp(a) - 1.0;
+	//distort 2
+	b = b < 0 ? -log(-b + 1.0) : log(b + 1.0);
+	//distort 3
+	c *= c < 0 ? -c : c;
+	OUT(OUT4_OUTPUT, (a + b + c) * 2.0 * PARA(POT4_PARAM));
 END
 
 //EI 1 in 3
