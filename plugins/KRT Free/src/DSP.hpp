@@ -46,6 +46,17 @@
 #define _PANEL(X) setModule(new Generic(this)); box.size = Vec(15*X, 380); {\
 	Panel *panel = new DarkPanel(); panel->box.size = box.size;\
 	panel->backgroundImage = Image::load(k.slug()); addChild(panel); }
+
+#define s2s(a,b) { (b / a), 1. / b }
+#define s1s(b) { 0., 1. / b }
+#define pair(r,i) { (r * r + i * i), (r * r + i * i) / (-2. * r) }
+#define real(r) pair(r, 0.)
+
+#define phi(N) exp(log((1. + sqrt(5)) / 2.) / N)
+#define rmul(N) ((phi(N) * phi(N) - 1.) / (2. * phi(N)))
+#define imul(N) ((phi(N) * phi(N) + 1.) / (2. * phi(N)))
+#define pick(k,N) (2. * k - 1.) * pi / 2. / N
+#define cheb(k,N) pair(-sin(pick(k,N)) * rmul(N), cos(pick(k,N)) * imul(N))
 //===================================================================================================
 //========================================================================================= FUNCTIONS
 //NOTES ON GETTING OTHER VARIABLES INTO JUST A SPECIFIC CLASS
@@ -70,12 +81,13 @@ TYPE float DEF Freq(float in, float invSample) SUB
 	return in * invSample / (3. * in * invSample + 2.);//alpha
 RETURN
 
-TYPE float DEF SK(float in, float f1, float f2, float *b1, float *b2, float *x) SUB
+TYPE float DEF SK(float in, float f1, float f2, float *b1, float *b2, float *x, float bp, float rez) SUB
 	//ZDF
 	float pf1 = f1;// / (2. + f1);
 	float pf2 = f2;// / (2. + f2);
-	float dy1 = pf1 * (*x + in - 2. * (*b1 + *b2));
-	float dyb = pf2 * (2. * (*b1 - *b2) + dy1) / (1. + pf2);
+	float b = *b2 * (1.0 + rez) + bp;
+	float dy1 = pf1 * (*x + in - 2. * (*b1 + b));
+	float dyb = pf2 * (2. * (*b1 - b) + dy1) / (1. + pf2);
 	dy1 -= dyb;
 	dyb /= pf1 - 1.;
 	*x = in;
