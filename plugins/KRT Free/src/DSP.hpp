@@ -65,6 +65,24 @@ TYPE float DEF quant(float arg) SUB
 	return (float)x / 12.0;
 RETURN
 
+TYPE float DEF Freq(float in, float invSample) SUB
+	if(in == 0.) return 1.;
+	return in * invSample / (3. * in * invSample + 2.);//alpha
+RETURN
+
+TYPE float DEF SK(float in, float f1, float f2, float *b1, float *b2, float *x) SUB
+	//ZDF
+	float pf1 = f1;// / (2. + f1);
+	float pf2 = f2;// / (2. + f2);
+	float dy1 = pf1 * (*x + in - 2. * (*b1 + *b2));
+	float dyb = pf2 * (2. * (*b1 - *b2) + dy1) / (1. + pf2);
+	dy1 -= dyb;
+	dyb /= pf1 - 1.;
+	*x = in;
+	*b1 += dy1;
+	return *b2 = dyb;//lpf
+RETURN
+
 //===================================================================================================
 //=============================================================================================== DSP
 //EI 4 by 4
