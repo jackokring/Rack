@@ -16,6 +16,7 @@
 #define IN(X,Y) getf(inputs[X],Y)
 //Auto VCA linear
 #define OUT(X,Y) setf(outputs[X], Y * getf(inputs[VCA_INPUT], 10.0) * 0.1)
+#define OUTCV(X,Y,M) setf(outputs[X], Y + (M - 0.5) * getf(inputs[VCA_INPUT], 0.0) * 0.1)
 #define CHAINEDIN(X) getf(_g.inputs[X])
 #define CHAINEDOUTIN(X) getf(_g.outputs[X]) /* maybe a sample behind */
 #define CHAINEDOUT(X,Y,OLD) setf(_g.outputs[X], getf(_g.outputs[X]) - OLD + Y); OLD = Y
@@ -53,13 +54,15 @@
 //A static declaration in a BEGIN ... END section will persist across all instances of the one module kind.
 //
 
-TYPE int DEF x[100] VAR //Use GENERIC to initialize
+//TYPE int DEF x[100] VAR //Use GENERIC to initialize
 TYPE float DEF v[4] VAR
 TYPE float DEF vo[4] VAR
 
 
-TYPE void DEF func(int arg) SUB
+TYPE float DEF quant(float arg) SUB
 	//C++ function here minus the {} outer brackets
+	int x = (int)(arg * 12.0 + 0.5);
+	return (float)x / 12.0;
 RETURN
 
 //===================================================================================================
@@ -91,7 +94,13 @@ BEGIN(LFOKRTWidget, "LFO Gate Synced")
 END
 
 BEGIN(CHDKRTWidget, "CHD Chord Quantizer")
-
+	float a = 2 * PARA(POT1_PARAM) - 1.0 + IN(IN1_INPUT, 0.0);
+	float b = 2 * PARA(POT2_PARAM) - 1.0 + a;
+	float c = 2 * PARA(POT3_PARAM) - 1.0 + b;
+	float t = PARA(POT4_PARAM);
+	OUTCV(OUT2_OUTPUT, quant(a), t);
+	OUTCV(OUT3_OUTPUT, quant(b), t);
+	OUTCV(OUT4_OUTPUT, quant(c), t);
 END
 
 BEGIN(PHYKRTWidget, "PHY Physical Model")
