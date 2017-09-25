@@ -80,7 +80,7 @@ RETURN
 
 TYPE float DEF Freq(float in, float invSample) SUB
 	if(in == 0.) return 1.;
-	return in * invSample / (3. * in * invSample + 2.);//alpha
+	return 2. * Math::pi * in * invSample / (6. * Math::pi * in * invSample + 2.);//alpha
 RETURN
 
 TYPE float DEF SK(float in, float f1, float f2, float *b1, float *b2, float *x, float bp, float rez) SUB
@@ -143,17 +143,38 @@ END
 
 //EI 1 in 3
 BEGIN(VCOKRTWidget, "VCO 2 Subs")
-
+	float *ph = &v[3];//phase
+	float *ph2 = &v[2];
+	float *ph3 = &v[1];
+	float f = Math::pi * 440.0 * PARACV(POT1_PARAM, 4.0) * INCV(IN1_INPUT);
+	f *= 1.0  / gSampleRate;//based on input sample
+	*ph += f;
+	*ph2 += f * 0.5;
+	*ph3 += f * 0.25;
+	if(*ph > 2.0 * Math::pi) *ph -= 2.0 * Math::pi;//wrap
+	if(*ph2 > 2.0 * Math::pi) *ph2 -= 2.0 * Math::pi;//wrap
+	if(*ph3 > 2.0 * Math::pi) *ph3 -= 2.0 * Math::pi;//wrap
+	OUT(OUT2_OUTPUT, sin(*ph));
+	OUT(OUT3_OUTPUT, sin(*ph2));
+	OUT(OUT4_OUTPUT, sin(*ph3));
 END
 
 BEGIN(LFOKRTWidget, "LFO Gate Synced")
 	float *ph = &v[3];//phase
-	float f = Math::pi * 55.0 * PARACV(POT1_PARAM, 4.0);
-	float tr = INCV(IN1_INPUT);
-	float in = SK(tr, 0.0, Freq(f * 0.5, 1.0 / gSampleRate), &v[0], &v[1], &v[2], 0.0, 0.0);
-	f *= in  / gSampleRate;//based on input sample
+	float f = Math::pi * 55.0 * PARACV(POT1_PARAM, 4.0) * INCV(IN1_INPUT);
+	float *tr = &v[2];
+	float *tr2 = &v[1];
+ 	*tr2 = *tr;
+	*tr = IN(VCA_INPUT);
+	f *= 1.0  / gSampleRate;//based on input sample
 	*ph += f;
-	if(absf(v[2] - tr) > 1.0 / 13.0) *ph = 0.0;//sync 
+	if((*tr - *tr2) > 0.001 && !(v[0] < 0.0))  {
+		*ph = 0.0;//sync
+		v[0] = -1.0;
+	}
+	if((*tr - *tr2) < -0.001 && v[0] < 0.0)  {
+		v[0] = 1.0;//retrig enable
+	}
 	if(*ph > 2.0 * Math::pi) *ph -= 2.0 * Math::pi;//wrap
 	OUT(OUT2_OUTPUT, sin(*ph) * (2.0 * PARA(POT2_PARAM) - 1.0));
 	OUT(OUT3_OUTPUT, sin(*ph + 2.0 * Math::pi / 3.0) * (2.0 * PARA(POT3_PARAM) - 1.0));
