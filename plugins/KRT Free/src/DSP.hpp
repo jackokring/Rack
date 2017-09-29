@@ -79,7 +79,7 @@ TYPE float DEF quant(float arg) SUB
 RETURN
 
 TYPE float DEF Freq(float in, float invSample) SUB
-	if(in == 0.) return 1.;
+	if(in == 0.) return 1. / 3.;
 	return 2. * Math::pi * in * invSample / (6. * Math::pi * in * invSample + 2.);//alpha
 RETURN
 

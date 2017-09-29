@@ -5,3 +5,4 @@
 //.cpp is made seperate, .hpp is just templates.
 #pragma once
 #include "fmath.hpp"
+#include "filter.hpp"
