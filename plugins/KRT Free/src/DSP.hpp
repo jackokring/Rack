@@ -121,7 +121,26 @@ BEGIN(PLLKRTWidget, "PLL Phase Locked Loop")
 END
 
 BEGIN(VCFKRTWidget, "VCF SK Filter")
-
+	float env = PARACV(POT3_PARAM, IN(VCA_INPUT, 0.0) * 0.2);
+	float f = 440.0 * (PARACV(POT1_PARAM, 4.0) * env) * INCV(IN1_INPUT);
+	float l = IN(IN2_INPUT, 0.0);//low
+	float b = IN(IN3_INPUT, 0.0);//band
+	float r = PARA(POT2_PARAM);//rez
+	float ch = PARA(POT4_PARAM) * 15.0;//character
+	float inv = 1. / gSampleRate;
+	//mod using char
+	int x = (int)ch;//get int
+	if(x == 15) x = 14;
+	float y = ch - (float)x;//modulus
+	//access
+	float a = (1.0 - y) * filterLPF[filterPair[x][0]][0] + y * filterLPF[filterPair[x + 1][0]][0];
+	float b = (1.0 - y) * filterLPF[filterPair[x][0]][1] + y * filterLPF[filterPair[x + 1][0]][1];
+	float c = (1.0 - y) * filterLPF[filterPair[x][1]][0] + y * filterLPF[filterPair[x + 1][1]][0];
+	float d = (1.0 - y) * filterLPF[filterPair[x][1]][1] + y * filterLPF[filterPair[x + 1][1]][1];
+	//filter
+	float out = SK(l, Freq(f * a, inv), Freq(f * b, inv), &v[0], &v[1], &v[2], b, r);
+	out = SK(l, Freq(f * c, inv), Freq(f * d, inv), &vo[0], &vo[1], &vo[2], b, r);
+	OUT(OUT4_OUTPUT, out);
 END
 
 BEGIN(DSTKRTWidget, "DST Distortion")
@@ -144,19 +163,18 @@ END
 //EI 1 in 3
 BEGIN(VCOKRTWidget, "VCO 2 Subs")
 	float *ph = &v[3];//phase
-	float *ph2 = &v[2];
 	float *ph3 = &v[1];
 	float f = Math::pi * 440.0 * PARACV(POT1_PARAM, 4.0) * INCV(IN1_INPUT);
+	float ha = IN(IN2_INPUT) * PARA(POT2_PARAM);//pwm slice
+	float b = IN(IN3_INPUT) * PARA(POT3_PARAM);//subz
 	f *= 1.0  / gSampleRate;//based on input sample
 	*ph += f;
-	*ph2 += f * 0.5;
 	*ph3 += f * 0.25;
 	if(*ph > 2.0 * Math::pi) *ph -= 2.0 * Math::pi;//wrap
-	if(*ph2 > 2.0 * Math::pi) *ph2 -= 2.0 * Math::pi;//wrap
 	if(*ph3 > 2.0 * Math::pi) *ph3 -= 2.0 * Math::pi;//wrap
-	OUT(OUT2_OUTPUT, sin(*ph));
-	OUT(OUT3_OUTPUT, sin(*ph2));
-	OUT(OUT4_OUTPUT, sin(*ph3));
+	float wav = sin(*ph) + sin(*ph3) * b;
+	wav += sin((wav - ha) * PARA(POT4_PARAM) * 4.0);//p(w)m depth
+	OUT(OUT4_OUTPUT, wav);
 END
 
 BEGIN(LFOKRTWidget, "LFO Gate Synced")
@@ -241,7 +259,7 @@ SHOW(4)
 	else
 		INPUT(0, 0, IN1_INPUT);
 
-	if(IS(VCOKRTWidget) || IS(LFOKRTWidget) || IS(CHDKRTWidget)) {
+	if(IS(LFOKRTWidget) || IS(CHDKRTWidget)) {
 		OUTPUT(1, 0, OUT2_OUTPUT);
 		OUTPUT(0, 1, OUT3_OUTPUT);
 	} else {
