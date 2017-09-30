@@ -106,18 +106,32 @@ BEGIN(PMKRTWidget, "PM Phase Modulator")
 	float b = PARA(POT2_PARAM);//depth
 	float c = Freq(440 * PARACV(POT3_PARAM, 4.0), inv);//hpf
 	float d = PARA(POT4_PARAM);//fb
-	float t = IN(IN1_INPUT) + (2 * vo[2] - vo[3]) * (2.0 * d - 1.0);
+	float t = IN(IN1_INPUT, 0.0) + (2 * vo[2] - vo[3]) * (2.0 * d - 1.0);
 	t = SK(t, 0.0, a, &v[0], &v[1], &v[2], 0.0, 0.0);
-	t += IN(IN2_INPUT);
+	t += IN(IN2_INPUT, 0.0);
 	t = t < 0 ? sin(-t * b * 4.0) : sin(t * b * 4.0);//sub
-	t += IN(IN3_INPUT);
+	t += IN(IN3_INPUT, 0.0);
 	vo[3] = vo[2];
 	t -= SK(t, 0.0, c, &vo[0], &vo[1], &vo[2], 0.0, 0.0);
 	OUT(OUT4_OUTPUT, t);
 END
 
 BEGIN(PLLKRTWidget, "PLL Phase Locked Loop")
-
+	float inv = 1.0  / gSampleRate;
+	float *ph = &v[3];//phase
+	float out = sin(*ph);//out
+	float f = Math::pi * 440.0 * PARACV(POT1_PARAM, 4.0) * INCV(IN1_INPUT);
+	float pll1 = IN(IN2_INPUT, 0.0) * out;
+	float pll2 = IN(IN3_INPUT, 0.0) * out;
+	float a = Freq(220 * PARACV(POT2_PARAM, 4.0), inv);
+	float b = Freq(220 * PARACV(POT3_PARAM, 4.0), inv);
+	pll1 = SK(pll1, 0.0, a, &v[0], &v[1], &v[2], 0.0, 0.0);
+	pll2 = SK(pll2, 0.0, b, &vo[0], &vo[1], &vo[2], 0.0, 0.0);
+	float z = pll1 + pll2;
+	z = exp(log(2) * z * PARA(POT4_PARAM));//exp mod tracking gain
+	f *= inv * z;//tune
+	*ph += f;
+	OUT(OUT4_OUTPUT, out);
 END
 
 BEGIN(VCFKRTWidget, "VCF SK Filter")
@@ -165,8 +179,8 @@ BEGIN(VCOKRTWidget, "VCO 2 Subs")
 	float *ph = &v[3];//phase
 	float *ph3 = &v[1];
 	float f = Math::pi * 440.0 * PARACV(POT1_PARAM, 4.0) * INCV(IN1_INPUT);
-	float ha = IN(IN2_INPUT) * PARA(POT2_PARAM);//pwm slice
-	float b = IN(IN3_INPUT) * PARA(POT3_PARAM);//subz
+	float ha = IN(IN2_INPUT, 0.0) * PARA(POT2_PARAM);//pwm slice
+	float b = IN(IN3_INPUT, 0.0) * PARA(POT3_PARAM);//subz
 	f *= 1.0  / gSampleRate;//based on input sample
 	*ph += f;
 	*ph3 += f * 0.25;
@@ -178,25 +192,36 @@ BEGIN(VCOKRTWidget, "VCO 2 Subs")
 END
 
 BEGIN(LFOKRTWidget, "LFO Gate Synced")
+	float inv = 1.0  / gSampleRate;//based on input sample
 	float *ph = &v[3];//phase
-	float f = Math::pi * 55.0 * PARACV(POT1_PARAM, 4.0) * INCV(IN1_INPUT);
+	float *ph2 = &v[2];
+	float *out = &v[3];
+	float f = Math::pi * 13.75 * PARACV(POT1_PARAM, 4.0) * INCV(IN1_INPUT);
+	float f2 = Math::pi * 55.0 * PARACV(POT1_PARAM, 4.0) * INCV(IN3_INPUT);//SH
 	float *tr = &v[2];
 	float *tr2 = &v[1];
  	*tr2 = *tr;
-	*tr = IN(VCA_INPUT);
-	f *= 1.0  / gSampleRate;//based on input sample
+	*tr = IN(IN2_INPUT, 0.0);//trig
+	f *= inv;
+	f2 *= inv;
 	*ph += f;
-	if((*tr - *tr2) > 0.001 && !(v[0] < 0.0))  {
+	*ph2 += f;
+	float s = PARA(POT2_PARAM) * inv * 44100;//set for oversample rise slew
+	if((*tr - *tr2) > s && !(v[0] < 0.0))  {
 		*ph = 0.0;//sync
+		*ph2 = 0.0;
 		v[0] = -1.0;
 	}
-	if((*tr - *tr2) < -0.001 && v[0] < 0.0)  {
+	if((*tr - *tr2) < -s && v[0] < 0.0)  {
 		v[0] = 1.0;//retrig enable
 	}
 	if(*ph > 2.0 * Math::pi) *ph -= 2.0 * Math::pi;//wrap
-	OUT(OUT2_OUTPUT, sin(*ph) * (2.0 * PARA(POT2_PARAM) - 1.0));
-	OUT(OUT3_OUTPUT, sin(*ph + 2.0 * Math::pi / 3.0) * (2.0 * PARA(POT3_PARAM) - 1.0));
-	OUT(OUT4_OUTPUT, sin(*ph - 2.0 * Math::pi / 3.0) * (2.0 * PARA(POT4_PARAM) - 1.0));
+	if(*ph2 > 2.0 * Math::pi) {
+		*ph -= 2.0 * Math::pi;//wrap
+		*out = sin(*ph);//SH
+	}
+	float p = PARA(POT3_PARAM);//offset
+	OUT(OUT4_OUTPUT, *out * (2.0 * PARA(POT4_PARAM) - 1.0) + (2.0 * p - 1.0);
 END
 
 BEGIN(CHDKRTWidget, "CHD Chord Quantizer")
@@ -259,7 +284,7 @@ SHOW(4)
 	else
 		INPUT(0, 0, IN1_INPUT);
 
-	if(IS(LFOKRTWidget) || IS(CHDKRTWidget)) {
+	if(IS(CHDKRTWidget) || IS(PHYKRTWidget)) {
 		OUTPUT(1, 0, OUT2_OUTPUT);
 		OUTPUT(0, 1, OUT3_OUTPUT);
 	} else {
