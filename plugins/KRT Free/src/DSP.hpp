@@ -17,7 +17,8 @@
 #define IN(X,Y) getf(inputs[X],Y)
 #define INCV(X) exp(log(2.0) * inputs[X])
 //Auto VCA linear
-#define OUT(X,Y) setf(outputs[X], Y * getf(inputs[VCA_INPUT], 10.0) * 0.1)
+#define _OUT(X,Y) setf(outputs[X], Y * getf(inputs[VCA_INPUT], 10.0) * 0.1)
+#define OUT(X,Y,L) blep(x,y,NULL,L)
 #define OUTCV(X,Y,M) setf(outputs[X], Y + (M - 0.5) * getf(inputs[VCA_INPUT], 0.0) * 0.1)
 #define CHAINEDIN(X) getf(_g.inputs[X])
 #define CHAINEDOUTIN(X) getf(_g.outputs[X]) /* maybe a sample behind */
@@ -97,6 +98,15 @@ TYPE float DEF SK(float in, float f1, float f2, float *b1, float *b2, float *x, 
 	return *b2 = dyb;//lpf
 RETURN
 
+TYPE void DEF blep(int port, float value, float *buf, bool limit) SUB
+	//limit line level
+
+	//blep fractal process residual buffer and blep summation buffer
+
+	//hard out
+	_OUT(port, value);
+RETURN
+
 //===================================================================================================
 //=============================================================================================== DSP
 //EI 4 by 4
@@ -113,7 +123,7 @@ BEGIN(PMKRTWidget, "PM Phase Modulator")
 	t += IN(IN3_INPUT, 0.0);
 	vo[3] = vo[2];
 	t -= SK(t, 0.0, c, &vo[0], &vo[1], &vo[2], 0.0, 0.0);
-	OUT(OUT4_OUTPUT, t);
+	OUT(OUT4_OUTPUT, t, true);
 END
 
 BEGIN(PLLKRTWidget, "PLL Phase Locked Loop")
@@ -131,7 +141,7 @@ BEGIN(PLLKRTWidget, "PLL Phase Locked Loop")
 	z = exp(log(2) * z * PARA(POT4_PARAM));//exp mod tracking gain
 	f *= inv * z;//tune
 	*ph += f;
-	OUT(OUT4_OUTPUT, out);
+	OUT(OUT4_OUTPUT, out, false);//auto sin limited!!
 END
 
 BEGIN(VCFKRTWidget, "VCF SK Filter")
@@ -154,7 +164,7 @@ BEGIN(VCFKRTWidget, "VCF SK Filter")
 	//filter
 	float out = SK(l, Freq(f * a, inv), Freq(f * b, inv), &v[0], &v[1], &v[2], b, r);
 	out = SK(l, Freq(f * c, inv), Freq(f * d, inv), &vo[0], &vo[1], &vo[2], b, r);
-	OUT(OUT4_OUTPUT, out);
+	OUT(OUT4_OUTPUT, out, true);
 END
 
 BEGIN(DSTKRTWidget, "DST Distortion")
@@ -166,12 +176,12 @@ BEGIN(DSTKRTWidget, "DST Distortion")
 	c *= PARA(POT3_PARAM);
 	//distort
 	//everyone doing tanh, a bit different but not too far off
-	b = b < 0 ? -exp(-a) - 1.0 : exp(a) - 1.0;
+	b = b < 0 ? -exp(-a) + 1.0 : exp(a) - 1.0;//ok
 	//distort 2
 	b = b < 0 ? -log(-b + 1.0) : log(b + 1.0);
 	//distort 3
 	c *= c < 0 ? -c : c;
-	OUT(OUT4_OUTPUT, (a + b + c) * 2.0 * PARA(POT4_PARAM));
+	OUT(OUT4_OUTPUT, (a + b + c) * 2.0 * PARA(POT4_PARAM), true);
 END
 
 //EI 1 in 3
@@ -188,7 +198,7 @@ BEGIN(VCOKRTWidget, "VCO 2 Subs")
 	if(*ph3 > 2.0 * Math::pi) *ph3 -= 2.0 * Math::pi;//wrap
 	float wav = sin(*ph) + sin(*ph3) * b;
 	wav += sin((wav - ha) * PARA(POT4_PARAM) * 4.0);//p(w)m depth
-	OUT(OUT4_OUTPUT, wav);
+	OUT(OUT4_OUTPUT, wav * 0.3, true);
 END
 
 BEGIN(LFOKRTWidget, "LFO Gate Synced")
@@ -221,7 +231,7 @@ BEGIN(LFOKRTWidget, "LFO Gate Synced")
 		*out = sin(*ph);//SH
 	}
 	float p = PARA(POT3_PARAM);//offset
-	OUT(OUT4_OUTPUT, *out * (2.0 * PARA(POT4_PARAM) - 1.0) + (2.0 * p - 1.0);
+	OUT(OUT4_OUTPUT, *out * (2.0 * PARA(POT4_PARAM) - 1.0) + (2.0 * p - 1.0), false);
 END
 
 BEGIN(CHDKRTWidget, "CHD Chord Quantizer")
@@ -244,10 +254,10 @@ BEGIN(PHYKRTWidget, "PHY Physical Model")
 	e *= (1 - d) * v[1] * d * e;
 	vo[3] = v[3];
 	v[3] = - (b + c + e);
-	OUT(OUT1_OUTPUT, b);
-	OUT(OUT2_OUTPUT, c);
-	OUT(OUT3_OUTPUT, e);
-	OUT(OUT4_OUTPUT, v[3]);
+	OUT(OUT1_OUTPUT, b, false);
+	OUT(OUT2_OUTPUT, c, false);
+	OUT(OUT3_OUTPUT, e, false);
+	OUT(OUT4_OUTPUT, v[3], false);
 	v[3] /= d;//achieves uncertainty
 	b = PARACV(POT2_PARAM, 3.0);//1 Hz centre
 	c = PARACV(POT3_PARAM, 3.0);
