@@ -111,12 +111,16 @@ TYPE void DEF blep(int port, float value, bool limit) SUB
 	float v = value;
 	value = blb[port] - value - bl[((idx) & 15) + 32 * port + 16];//and + residual
 	blb[port] = v;//for next delta
-	for(int i = 0; i < 16; i++) {
-		bl[((i + idx) & 15) + 32 * port] += value * blepFront[i];
+	for(int i = 0; i < 15; i++) {
+		bl[((i + idx + 1) & 15) + 32 * port] += value * blepFront[i];
 	}
-	bl[((idx) & 15) + 32 * port + 16] = value * (blepFront[16] - 1.0);//residual buffer
+	value += bl[((idx) & 15) + 32 * port];//blep
+	float r = value - (float)((int16_t)(value * MAXINT)) / (float)MAXINT;//under bits residual
+	bl[((idx) & 15) + 32 * port + 16] = value * (blepFront[15] - 1.0);//residual buffer
+	bl[((idx + 1) & 15) + 32 * port] += r;//noise shape
+	idx++;
 	//hard out
-	_OUT(bl[((idx++) & 15) + 32 * port], value);//start the blep
+	_OUT(port, value - r);//start the blep
 RETURN
 
 //===================================================================================================
