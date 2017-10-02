@@ -98,9 +98,13 @@ TYPE float DEF SK(float in, float f1, float f2, float *b1, float *b2, float *x, 
 	return *b2 = dyb;//lpf
 RETURN
 
+TYPE float DEF clip(float in) SUB
+	return in;
+RETURN
+
 TYPE void DEF blep(int port, float value, float *buf, bool limit) SUB
 	//limit line level
-
+	if(limit) value = clip(value);
 	//blep fractal process residual buffer and blep summation buffer
 
 	//hard out
