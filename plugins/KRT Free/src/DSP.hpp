@@ -105,6 +105,7 @@ TYPE float DEF clip(float in) SUB
 RETURN
 
 TYPE void DEF blep(int port, float value, bool limit) SUB
+	const int MAXINT = 65535;
 	//limit line level
 	if(limit) value = clip(value);
 	//blep fractal process residual buffer and blep summation buffer
@@ -115,7 +116,7 @@ TYPE void DEF blep(int port, float value, bool limit) SUB
 		bl[((i + idx + 1) & 15) + 32 * port] += value * blepFront[i];
 	}
 	value += bl[((idx) & 15) + 32 * port];//blep
-	float r = value - (float)((int16_t)(value * MAXINT)) / (float)MAXINT;//under bits residual
+	float r = value - (float)((int)(value * MAXINT)) / (float)MAXINT;//under bits residual
 	bl[((idx) & 15) + 32 * port + 16] = value * (blepFront[15] - 1.0);//residual buffer
 	bl[((idx + 1) & 15) + 32 * port] += r;//noise shape
 	idx++;
