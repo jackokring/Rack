@@ -109,12 +109,12 @@ TYPE void DEF blep(int port, float value, bool limit) SUB
 	if(limit) value = clip(value);
 	//blep fractal process residual buffer and blep summation buffer
 	float v = value;
-	value = blb[port] - value + bl[((idx) & 15) + 32 * port + 16];//and + residual
+	value = blb[port] - value - bl[((idx) & 15) + 32 * port + 16];//and + residual
 	blb[port] = v;//for next delta
 	for(int i = 0; i < 16; i++) {
 		bl[((i + idx) & 15) + 32 * port] += value * blepFront[i];
 	}
-	bl[((idx) & 15) + 32 * port + 16] = value * blepFront[17];//residual buffer
+	bl[((idx) & 15) + 32 * port + 16] = value * (blepFront[17] - 1.0);//residual buffer
 	//hard out
 	_OUT(bl[((idx++) & 15) + 32 * port], value);//start the blep
 RETURN
