@@ -18,7 +18,7 @@
 #define INCV(X) exp(log(2.0) * inputs[X])
 //Auto VCA linear
 #define _OUT(X,Y) setf(outputs[X], Y * getf(inputs[VCA_INPUT], 10.0) * 0.1)
-#define OUT(X,Y,L) blep(x,y,NULL,L)
+#define OUT(X,Y,L) blep(X,Y,L)
 #define OUTCV(X,Y,M) setf(outputs[X], Y + (M - 0.5) * getf(inputs[VCA_INPUT], 0.0) * 0.1)
 #define CHAINEDIN(X) getf(_g.inputs[X])
 #define CHAINEDOUTIN(X) getf(_g.outputs[X]) /* maybe a sample behind */
@@ -71,7 +71,9 @@
 //TYPE int DEF x[100] VAR //Use GENERIC to initialize
 TYPE float DEF v[4] VAR
 TYPE float DEF vo[4] VAR
-
+TYPE float DEF bl[16 * 2 * 4] VAR
+TYPE float DEF blb[4];
+TYPE int DEF idx VAR
 
 TYPE float DEF quant(float arg) SUB
 	//C++ function here minus the {} outer brackets
@@ -102,13 +104,19 @@ TYPE float DEF clip(float in) SUB
 	return in;
 RETURN
 
-TYPE void DEF blep(int port, float value, float *buf, bool limit) SUB
+TYPE void DEF blep(int port, float value, bool limit) SUB
 	//limit line level
 	if(limit) value = clip(value);
 	//blep fractal process residual buffer and blep summation buffer
-
+	float v = value;
+	value = blb[port] - value + bl[((idx) & 15) + 32 * port + 16];//and + residual
+	blb[port] = v;//for next delta
+	for(int i = 0; i < 16; i++) {
+		bl[((i + idx) & 15) + 32 * port] += value * blepFront[i];
+	}
+	bl[((idx) & 15) + 32 * port + 16] = value * blepFront[17];//residual buffer
 	//hard out
-	_OUT(port, value);
+	_OUT(bl[((idx++) & 15) + 32 * port], value);//start the blep
 RETURN
 
 //===================================================================================================
@@ -281,7 +289,10 @@ LIBINIT
 GENERIC
 	light = 0.0;
 	v[0] = v[1] = v[2] = v[3] = 0.0;
+	blb[0] = blb[1] = blb[2] = blb[3] = 0.0;
 	vo[0] = vo[1] = vo[2] = vo[3] = 0.000000001;//startup
+	for(int i = 0; i < sizeof(bl) / sizeof(float); i++) bl[i] = 0.0;
+	idx = 0;
 STEP
 	KRTRUN(this);//Can also apply it to other instances to share IO
 SHOW(4)
